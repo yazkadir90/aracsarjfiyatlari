@@ -5,10 +5,10 @@ const prisma = new PrismaClient();
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const id = Number(params.id);
+    const id = Number(context.params.id);
     if (!id) return NextResponse.json({ error: "Geçersiz ID" }, { status: 400 });
     
     const brand = await prisma.stationBrand.update({
