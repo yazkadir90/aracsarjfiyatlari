@@ -5,7 +5,7 @@ import { PrismaClient } from "@/generated/prisma";
 
 const prisma = new PrismaClient();
 
-export async function POST(req, context) {
+export async function POST(req: NextRequest, context: { params: { id: string } }) {
   try {
     const id = Number(context.params.id);
     if (!id) return NextResponse.json({ error: "Geçersiz ID" }, { status: 400 });

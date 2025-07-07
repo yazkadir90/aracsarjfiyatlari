@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
         sourceUrl,
         approved: false,
         options: {
-          create: options.map((opt: any) => ({
+          create: options.map((opt: { socketType: string; power: string; priceAmount: number; priceUnit: string }) => ({
             socketType: opt.socketType,
             power: opt.power,
             priceAmount: opt.priceAmount,

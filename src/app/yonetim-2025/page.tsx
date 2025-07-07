@@ -23,8 +23,8 @@ export default function AdminPage() {
   const [seo, setSeo] = useState({ title: "", description: "" });
   const [seoMsg, setSeoMsg] = useState("");
   const [seoLoading, setSeoLoading] = useState(false);
-  const [editModal, setEditModal] = useState<any>({ open: false, brand: null });
-  const [editForm, setEditForm] = useState<any>({ name: "", sourceUrl: "", options: [{ socketType: "", power: "", priceAmount: "" }] });
+  const [editModal, setEditModal] = useState<{ open: boolean; brand: Brand | null }>({ open: false, brand: null });
+  const [editForm, setEditForm] = useState<{ name: string; sourceUrl: string; options: Array<{ socketType: string; power: string; priceAmount: number }> }>({ name: "", sourceUrl: "", options: [{ socketType: "", power: "", priceAmount: 0 }] });
   const [gtm, setGtm] = useState({ gtmCode: "" });
   const [gtmMsg, setGtmMsg] = useState("");
   const [gtmLoading, setGtmLoading] = useState(false);
@@ -35,7 +35,7 @@ export default function AdminPage() {
   const [addForm, setAddForm] = useState({
     name: "",
     options: [
-      { socketType: "", power: "", priceAmount: "" }
+      { socketType: "", power: "", priceAmount: 0 }
     ],
     sourceUrl: ""
   });
@@ -169,7 +169,7 @@ export default function AdminPage() {
     }
   };
 
-  const handleSeoChange = (e: any) => {
+  const handleSeoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setSeo(prev => ({ ...prev, [name]: value }));
   };
@@ -211,12 +211,12 @@ export default function AdminPage() {
               power: opt.power,
               priceAmount: opt.priceAmount
             }))
-          : [{ socketType: "", power: "", priceAmount: "" }],
+          : [{ socketType: "", power: "", priceAmount: 0 }],
       });
     }
   }, [editModal]);
 
-  const handleEditFormChange = (e: any, idx?: number, type?: string) => {
+  const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>, idx?: number, type?: string) => {
     const { name, value } = e.target;
     if (type === "options") {
       const options = [...editForm.options];
@@ -228,7 +228,7 @@ export default function AdminPage() {
   };
 
   const addEditField = (type: string) => {
-    if (type === "options") setEditForm({ ...editForm, options: [...editForm.options, { socketType: "", power: "", priceAmount: "" }] });
+    if (type === "options") setEditForm({ ...editForm, options: [...editForm.options, { socketType: "", power: "", priceAmount: 0 }] });
   };
   const removeEditField = (type: string, idx: number) => {
     if (type === "options") setEditForm({ ...editForm, options: editForm.options.filter((_: any, i: number) => i !== idx) });
@@ -272,7 +272,7 @@ export default function AdminPage() {
     }
   };
 
-  const handleGtmChange = (e: any) => {
+  const handleGtmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setGtm(prev => ({ ...prev, [name]: value }));
   };
@@ -407,7 +407,7 @@ export default function AdminPage() {
   };
 
   // Yeni istasyon ekleme fonksiyonları
-  const handleAddFormChange = (e: any) => {
+  const handleAddFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setAddForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -422,7 +422,7 @@ export default function AdminPage() {
   };
 
   const addOption = () => {
-    setAddForm((prev) => ({ ...prev, options: [...prev.options, { socketType: "", power: "", priceAmount: "" }] }));
+    setAddForm((prev) => ({ ...prev, options: [...prev.options, { socketType: "", power: "", priceAmount: 0 }] }));
   };
 
   const removeOption = (i: number) => {
@@ -430,12 +430,12 @@ export default function AdminPage() {
   };
 
   const resetAddForm = () => {
-    setAddForm({ name: "", options: [{ socketType: "", power: "", priceAmount: "" }], sourceUrl: "" });
+    setAddForm({ name: "", options: [{ socketType: "", power: "", priceAmount: 0 }], sourceUrl: "" });
     setShowAddModal(false);
     setAddMessage("");
   };
 
-  const handleAddSubmit = async (e: any) => {
+  const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddLoading(true);
     setAddMessage("");

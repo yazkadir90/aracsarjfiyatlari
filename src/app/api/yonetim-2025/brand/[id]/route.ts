@@ -5,7 +5,7 @@ import { PrismaClient } from "@/generated/prisma";
 
 const prisma = new PrismaClient();
 
-export async function DELETE(req, context) {
+export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
   try {
     const id = Number(context.params.id);
     if (!id) return NextResponse.json({ error: "Geçersiz ID" }, { status: 400 });
@@ -20,7 +20,7 @@ export async function DELETE(req, context) {
   }
 }
 
-export async function PUT(req, context) {
+export async function PUT(req: NextRequest, context: { params: { id: string } }) {
   try {
     const id = Number(context.params.id);
     if (!id) return NextResponse.json({ error: "Geçersiz ID" }, { status: 400 });
@@ -35,7 +35,7 @@ export async function PUT(req, context) {
         name,
         sourceUrl,
         options: {
-          create: options?.map(opt => ({
+          create: options?.map((opt: { socketType: string; power: string; priceAmount: number }) => ({
             socketType: opt.socketType,
             power: opt.power,
             priceAmount: parseFloat(opt.priceAmount),

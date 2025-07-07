@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(car, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Araç eklenirken hata:', error);
     
     if (error.code === 'P2002') {
@@ -93,7 +93,7 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json(car);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Araç güncellenirken hata:', error);
     
     if (error.code === 'P2002') {
