@@ -1,5 +1,3 @@
-// @ts-nocheck
-/* eslint-disable */
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@/generated/prisma";
 
@@ -9,7 +7,7 @@ export async function DELETE(req: NextRequest, context: { params: { id: string }
   try {
     const id = Number(context.params.id);
     if (!id) return NextResponse.json({ error: "Geçersiz ID" }, { status: 400 });
-    // Önce ilişkili StationOption kayıtlarını sil
+    // İlişkili StationOption kayıtlarını sil
     await prisma.stationOption.deleteMany({ where: { brandId: id } });
     // Sonra markayı sil
     await prisma.stationBrand.delete({ where: { id } });
@@ -26,7 +24,7 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
     if (!id) return NextResponse.json({ error: "Geçersiz ID" }, { status: 400 });
     const body = await req.json();
     const { name, sourceUrl, options } = body;
-    // Önce eski StationOption kayıtlarını sil
+    // Eski StationOption kayıtlarını sil
     await prisma.stationOption.deleteMany({ where: { brandId: id } });
     // Marka güncelle
     const updatedBrand = await prisma.stationBrand.update({

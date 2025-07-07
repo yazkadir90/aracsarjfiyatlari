@@ -106,12 +106,12 @@ export default function HomeClient() {
   }
   const costPerKm = estimatedRange > 0 ? totalCost / estimatedRange : 0;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const handleChange = (_e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = _e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
-  const handleOptionChange = (i: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const handleOptionChange = (i: number, _e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = _e.target;
     setForm((prev) => {
       const newOptions = [...prev.options];
       newOptions[i] = { ...newOptions[i], [name]: value };
@@ -184,7 +184,6 @@ export default function HomeClient() {
     .map(brand => ({
       ...brand,
       options: brand.options.filter((opt: BrandOption) => {
-        const power = Number(opt.power);
         const price = Number(opt.priceAmount);
         return (
           (!filter.brand || brand.name === filter.brand) &&
@@ -212,7 +211,7 @@ export default function HomeClient() {
             Elektrikli Araç Şarj Fiyatları
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 font-medium">
-              Türkiye'deki elektrikli araç şarj istasyonlarının güncel fiyatlarını karşılaştırın. Marka, soket tipi, güç ve fiyat bilgileriyle en uygun seçeneği bulun.
+              Türkiye&apos;deki elektrikli araç şarj istasyonlarının güncel fiyatlarını karşılaştırın. Marka, soket tipi, güç ve fiyat bilgileriyle en uygun seçeneği bulun.
           </p>
           </div>
           {/* Sağ: Şarj Maliyeti Hesaplama */}
