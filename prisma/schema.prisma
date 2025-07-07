@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Eski modelleri kaldır
+// model SocketType { ... }
+// model Power { ... }
+// model Price { ... }
+
+model StationOption {
+  id          Int           @id @default(autoincrement())
+  socketType  String
+  power       String
+  priceAmount Float
+  priceUnit   String
+  brand       StationBrand  @relation(fields: [brandId], references: [id])
+  brandId     Int
+}
+
+// Marka (Şarj İstasyonu Markası)
+model StationBrand {
+  id          Int           @id @default(autoincrement())
+  name        String
+  sourceUrl   String
+  options     StationOption[]
+  createdBy   User?         @relation(fields: [createdById], references: [id])
+  createdById Int?
+  approved    Boolean       @default(false) // Admin onayı
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  approvals   Approval[]
+}
+
+// Kullanıcı
+model User {
+  id        Int           @id @default(autoincrement())
+  email     String        @unique
+  name      String?
+  password  String
+  isAdmin   Boolean       @default(false)
+  brands    StationBrand[]
+  approvalsGiven Approval[] @relation("UserApprovals")
+}
+
+// Onay (Admin onayı kaydı, log tutmak için)
+model Approval {
+  id        Int           @id @default(autoincrement())
+  brand     StationBrand  @relation(fields: [brandId], references: [id])
+  brandId   Int
+  approvedBy User         @relation(fields: [approvedById], references: [id], name: "UserApprovals")
+  approvedById Int
+  approvedAt DateTime     @default(now())
+}
+
+model SeoSetting {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  updatedAt   DateTime @updatedAt
+}
+
+model SiteSetting {
+  id        Int    @id @default(autoincrement())
+  gtmCode   String
+  updatedAt DateTime @updatedAt
+}
+
+// Araç modeli
+model Car {
+  id          Int      @id @default(autoincrement())
+  brand       String   // Marka (Tesla, Kia, vb.)
+  model       String   // Model (Model Y, EV3, vb.)
+  capacity    Float    // Batarya kapasitesi (kWh)
+  consumption Float    // Tüketim (kWh/100km)
+  wltpRange   Int      // WLTP menzil (km)
+  isActive    Boolean  @default(true) // Aktif/Pasif durumu
+  sortOrder   Int      @default(0) // Sıralama için
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([brand, model]) // Aynı marka-model kombinasyonu tekrar edilemez
+}
