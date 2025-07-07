@@ -1,11 +1,29 @@
 "use client";
-import Image from "next/image";
-import Head from "next/head";
 import { useState, useEffect } from "react";
 import React from "react";
 import { FiExternalLink, FiInfo, FiZap, FiPower, FiTag, FiX } from "react-icons/fi";
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
+
+// Car ve Brand tiplerini tanımla
+interface Car {
+  brand: string;
+  model: string;
+  isActive: boolean;
+  consumption: number;
+  capacity: number;
+  wltpRange?: number;
+}
+interface BrandOption {
+  socketType: string;
+  power: string;
+  priceAmount: string | number;
+}
+interface Brand {
+  name: string;
+  options: BrandOption[];
+  sourceUrl?: string;
+}
 
 export default function HomeClient() {
   const [showModal, setShowModal] = useState(false);
@@ -18,10 +36,7 @@ export default function HomeClient() {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [brands, setBrands] = useState<any[]>([]);
-  const [loadingBrands, setLoadingBrands] = useState(true);
-  const [errorBrands, setErrorBrands] = useState("");
-  const [sort, setSort] = useState("Alfabetik");
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [filter, setFilter] = useState({
     brand: '',
     socketType: '',
@@ -29,7 +44,7 @@ export default function HomeClient() {
     priceMin: '',
     priceMax: ''
   });
-  const [cars, setCars] = useState<any[]>([]);
+  const [cars, setCars] = useState<Car[]>([]);
   const [loadingCars, setLoadingCars] = useState(true);
   const [errorCars, setErrorCars] = useState("");
 
@@ -42,8 +57,8 @@ export default function HomeClient() {
         const data = await res.json();
         // Aktif araçları alfabetik sıraya göre sırala
         const sortedCars = data
-          .filter((c:any) => c.isActive)
-          .sort((a:any, b:any) => {
+          .filter((c: Car) => c.isActive)
+          .sort((a: Car, b: Car) => {
             if (a.brand === b.brand) {
               return a.model.localeCompare(b.model);
             }
@@ -59,11 +74,11 @@ export default function HomeClient() {
     fetchCars();
   }, []);
 
-  const [selectedCar, setSelectedCar] = useState<any | null>(null);
+  const [selectedCar, setSelectedCar] = useState<Car | null>(null);
   useEffect(() => {
     if (cars.length > 0 && !selectedCar) {
-      // Tesla Model Y Standard Range'i varsayılan seçili yap
-      const defaultCar = cars.find(c => c.brand === "Tesla" && c.model === "Model Y Standard Range");
+      // Tesla Model Y Standard Range&apos;i varsayılan seçili yap
+      const defaultCar = cars.find(c => c.brand === "Tesla" && c.model === "Model Y Standard Range&apos;i");
       setSelectedCar(defaultCar || cars[0]);
     }
   }, [cars]);
@@ -91,24 +106,13 @@ export default function HomeClient() {
   }
   const costPerKm = estimatedRange > 0 ? totalCost / estimatedRange : 0;
 
-  // Slider handler
-  const handleRangeSlider = (idx: 0 | 1, value: number) => {
-    let newRange: [number, number] = [...chargeRange] as [number, number];
-    if (idx === 0) {
-      newRange[0] = Math.min(value, chargeRange[1] - 1);
-    } else {
-      newRange[1] = Math.max(value, chargeRange[0] + 1);
-    }
-    setChargeRange(newRange);
-  };
-
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
   const handleOptionChange = (i: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm((prev: any) => {
+    setForm((prev) => {
       const newOptions = [...prev.options];
       newOptions[i] = { ...newOptions[i], [name]: value };
       return { ...prev, options: newOptions };
@@ -120,7 +124,7 @@ export default function HomeClient() {
   const removeOption = (i: number) => {
     setForm((prev) => ({ ...prev, options: prev.options.filter((_, idx) => idx !== i) }));
   };
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
@@ -133,7 +137,7 @@ export default function HomeClient() {
           options: form.options.map(opt => ({
             socketType: opt.socketType,
             power: opt.power,
-            priceAmount: parseFloat(opt.priceAmount),
+            priceAmount: parseFloat(opt.priceAmount as string),
             priceUnit: "TL/kWh"
           })),
           sourceUrl: form.sourceUrl
@@ -147,7 +151,7 @@ export default function HomeClient() {
       } else {
         setMessage(data.error || "Hata oluştu");
       }
-    } catch (e) {
+    } catch {
       setMessage("Sunucu hatası");
     } finally {
       setLoading(false);
@@ -156,20 +160,16 @@ export default function HomeClient() {
 
   useEffect(() => {
     const fetchBrands = async () => {
-      setLoadingBrands(true);
-      setErrorBrands("");
       try {
         const res = await fetch("/api/brand");
         const data = await res.json();
         if (res.ok) {
           setBrands(data.brands);
         } else {
-          setErrorBrands(data.error || "Hata oluştu");
+          setMessage(data.error || "Hata oluştu");
         }
       } catch (e) {
-        setErrorBrands("Sunucu hatası");
-      } finally {
-        setLoadingBrands(false);
+        setMessage("Sunucu hatası");
       }
     };
     fetchBrands();
@@ -177,14 +177,13 @@ export default function HomeClient() {
 
   // Filtre seçeneklerini dinamik oluştur
   const allBrands = Array.from(new Set(brands.map(b => b.name)));
-  const allSocketTypes = Array.from(new Set(brands.flatMap(b => b.options.map((o: any) => o.socketType))));
+  const allSocketTypes = Array.from(new Set(brands.flatMap(b => b.options.map((o: BrandOption) => o.socketType))));
 
   // Filtrelenmiş ve sıralanmış veriler
-  type Option = { socketType: string; power: string; priceAmount: string | number };
   const filteredBrands = brands
     .map(brand => ({
       ...brand,
-      options: brand.options.filter((opt: Option) => {
+      options: brand.options.filter((opt: BrandOption) => {
         const power = Number(opt.power);
         const price = Number(opt.priceAmount);
         return (
@@ -206,15 +205,15 @@ export default function HomeClient() {
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           {/* Sol: Başlık ve açıklama */}
           <div className="flex flex-col justify-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mb-6 shadow-lg">
-              <FiZap className="text-white" size={32} />
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-              Elektrikli Araç Şarj Fiyatları
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 font-medium">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mb-6 shadow-lg">
+            <FiZap className="text-white" size={32} />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+            Elektrikli Araç Şarj Fiyatları
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 font-medium">
               Türkiye'deki elektrikli araç şarj istasyonlarının güncel fiyatlarını karşılaştırın. Marka, soket tipi, güç ve fiyat bilgileriyle en uygun seçeneği bulun.
-            </p>
+          </p>
           </div>
           {/* Sağ: Şarj Maliyeti Hesaplama */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-5 flex flex-col gap-4 max-w-md mx-auto w-full">
@@ -275,7 +274,7 @@ export default function HomeClient() {
                   />
                 </div>
                 <div className="text-xs text-gray-400 mt-1 text-center">
-                  Örneğin %20'den %80'e şarj etmek için barı sürükleyin.
+                  Örneğin %20&apos;den %80&apos;e şarj etmek için barı sürükleyin.
                 </div>
               </div>
               <div className="rounded-xl bg-[#f6f8fa] dark:bg-[#23272f] border border-gray-200 dark:border-gray-700 shadow-sm px-4 py-3 flex flex-col gap-1">
@@ -430,9 +429,9 @@ export default function HomeClient() {
                 </tr>
               ) : (
                 filteredBrands.flatMap((brand, brandIdx) =>
-                  brand.options.map((opt: any, idx: number) => (
+                  brand.options.map((opt: BrandOption, idx: number) => (
                     <tr
-                      key={brand.id + '-' + idx + '-' + opt.socketType + '-' + opt.power}
+                      key={brand.name + '-' + idx + '-' + opt.socketType + '-' + opt.power}
                       className={
                         (idx === 0 && brandIdx !== 0 ? 'border-t-2 border-gray-300 dark:border-gray-600' : 'border-t border-gray-100 dark:border-gray-700') +
                         ' transition-colors duration-200 hover:bg-blue-50/40 dark:hover:bg-blue-900/20'
@@ -616,11 +615,11 @@ export default function HomeClient() {
             <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
               Bu sitedeki fiyat ve bilgiler yalnızca bilgilendirme amaçlıdır. Fiyatlar değişebilir, güncel bilgiler için ilgili şarj ağı sağlayıcılarının resmi kaynaklarını kontrol edin. Site, sağlayıcılarla bağlantılı değildir ve sorumluluk kabul etmez.
             </p>
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+                         <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+               <p className="text-sm text-gray-500 dark:text-gray-400">
                 © 2025 Elektrikli Araç Şarj Fiyatları — Topluluk katkısıyla güncellenir
-              </p>
-            </div>
+               </p>
+             </div>
           </div>
         </footer>
       </div>
@@ -654,7 +653,7 @@ export default function HomeClient() {
                 </div>
                 <div>
                   <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-300">Şarj Seçenekleri</label>
-                  {form.options.map((opt: any, i: number) => (
+                  {form.options.map((opt: BrandOption, i: number) => (
                     <div key={i} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 mb-3 border border-gray-200 dark:border-gray-600">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
